@@ -1,5 +1,8 @@
 import { createElement } from 'react';
 import { Theme } from '../interface';
+import bgm from './sounds/ordinary-disco.m4a?url';
+import clickSound from './sounds/click.wav';
+import mergeSound from './sounds/merge.mp3';
 
 const imageUrls = import.meta.glob<string>('./images/*.png', {
     import: 'default',
@@ -34,13 +37,13 @@ export const getDefaultTheme: () => Theme<DefaultSoundNames> = () => {
         sounds: [
             {
                 name: 'button-click',
-                src: 'https://minio.streakingman.com/solvable-sheep-game/sound-button-click.mp3',
+                src: clickSound,
             },
             {
                 name: 'triple',
-                src: 'https://minio.streakingman.com/solvable-sheep-game/sound-triple.mp3',
+                src: mergeSound,
             },
         ],
-        bgm: 'https://minio.streakingman.com/solvable-sheep-game/sound-disco.mp3',
+        bgm,
     };
 };

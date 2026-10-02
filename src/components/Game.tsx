@@ -177,19 +177,48 @@ const Game: FC<{
     // 音效
     const soundRefMap = useRef<Record<string, HTMLAudioElement>>({});
 
-    // 第一次点击时播放bgm
+    // 默认尝试播放 BGM，浏览器限制时在用户交互后重试。
     const bgmRef = useRef<HTMLAudioElement>(null);
-    const [bgmOn, setBgmOn] = useState<boolean>(false);
+    const [bgmOn, setBgmOn] = useState<boolean>(true);
     const [once, setOnce] = useState<boolean>(false);
 
     useEffect(() => {
-        if (!bgmRef.current) return;
-        if (bgmOn) {
-            bgmRef.current.volume = 0.5;
-            bgmRef.current.play().then();
-        } else {
-            bgmRef.current.pause();
+        const audio = bgmRef.current;
+        if (!audio) return;
+        audio.volume = 0.5;
+        if (!bgmOn) {
+            audio.pause();
+            return;
         }
+
+        let active = true;
+        const events = ['click', 'touchend', 'keydown'] as const;
+        const removeListeners = () => {
+            events.forEach((event) =>
+                document.removeEventListener(event, tryPlay, true)
+            );
+        };
+        const tryPlay = () => {
+            if (!active) return;
+            void audio.play().then(
+                () => {
+                    if (active) removeListeners();
+                },
+                () => {
+                    // 浏览器阻止自动播放时，保留监听以便下次交互重试。
+                }
+            );
+        };
+        events.forEach((event) =>
+            document.addEventListener(event, tryPlay, true)
+        );
+        tryPlay();
+
+        return () => {
+            active = false;
+            removeListeners();
+            audio.pause();
+        };
     }, [bgmOn]);
 
     // 关卡缓存
@@ -340,9 +369,8 @@ const Game: FC<{
     const clickSymbol = async (idx: number) => {
         if (finished || animating) return;
 
-        // 第一次点击时，播放bgm，开启计时
+        // 第一次点击卡牌时开启计时。
         if (!once) {
-            setBgmOn(true);
             setOnce(true);
             startTimer();
         }
@@ -355,7 +383,11 @@ const Game: FC<{
         // 点击音效
         if (soundRefMap.current?.[symbol.icon.clickSound]) {
             soundRefMap.current[symbol.icon.clickSound].currentTime = 0;
-            soundRefMap.current[symbol.icon.clickSound].play().then();
+            void soundRefMap.current[symbol.icon.clickSound]
+                .play()
+                .catch(() => {
+                    // 播放失败不影响点击操作。
+                });
         }
 
         // 将点击项目加入队列
@@ -381,16 +413,15 @@ const Game: FC<{
                 const find = updateScene.find((i) => i.id === sb.id);
                 if (find) {
                     find.status = 2;
-                    // 三连音效
-                    if (soundRefMap.current?.[symbol.icon.tripleSound]) {
-                        soundRefMap.current[
-                            symbol.icon.tripleSound
-                        ].currentTime = 0;
-                        soundRefMap.current[symbol.icon.tripleSound]
-                            .play()
-                            .then();
-                    }
                 }
+            }
+            // 每次消除只播放一次音效。
+            const mergeAudio = soundRefMap.current[symbol.icon.tripleSound];
+            if (mergeAudio) {
+                mergeAudio.currentTime = 0;
+                void mergeAudio.play().catch(() => {
+                    // 播放失败不影响消除和计分。
+                });
             }
         }
 
@@ -523,6 +554,7 @@ const Game: FC<{
                         if (ref) soundRefMap.current[sound.name] = ref;
                     }}
                     src={sound.src}
+                    preload="auto"
                 />
             ))}
         </>
