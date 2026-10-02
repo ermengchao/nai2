@@ -12,17 +12,14 @@
 安装以下内容
 
 -   [git](https://git-scm.com/)
--   [node](https://nodejs.org/en/)
+-   [Bun](https://bun.sh/)
 
 ### 克隆仓库
 
-直接克隆本仓库或者 fork 后，安装项目依赖
+先进入本项目目录，安装项目依赖
 
-```shell
-git clone https://github.com/StreakingMan/solvable-sheep-game.git
-cd solvable-sheep-game
-npm install -g yarn
-yarn install
+```fish
+bun install --frozen-lockfile
 ```
 
 ## 素材配置
@@ -57,8 +54,8 @@ yarn install
 
 配置完成后调试运行，点击链接即可
 
-```shell
-yarn dev:diy
+```fish
+bun run dev:diy
 
 #   ➜  Local:   http://localhost:5556/
 ```
@@ -67,14 +64,14 @@ yarn dev:diy
 
 运行命令
 
-```shell
-yarn build:diy
+```fish
+bun run build:diy
 ```
 
 会在 `diy/diy-dist` 下生成静态资源，直接将这些文件复制服务器上做代理即可。如果嫌麻烦，推荐使用 [vercel](https://vercel.com/)
 一键部署（每月免费 100G 流量）， 将更改后的项目推到自己的 github（gitlab，bitbucket 同样支持）仓库，
 使用 github 账号登录 vercel 后导入该项目，构建模版选择 vite，
-构建命令更改为 `yarn build:diy` 输出地址改为 `diy/diy-dist` 即可 。见下图：
+构建命令更改为 `bun run build:diy` 输出地址改为 `diy/diy-dist` 即可 。见下图：
 
 <img src="./vercel.png" alt="" style="width: 400px"/>
 
@@ -100,4 +97,4 @@ ps: 如果您的项目托管在公共仓库中，请注意保护密钥，本地�
 `rank` 表，储存排名信息
 ![img.png](datebase-rank.png)
 
-最后，开发和打包命令分别使用 `yarn dev` 和 `yarn build` 即可
+最后，开发和打包命令分别使用 `bun run dev` 和 `bun run build` 即可
